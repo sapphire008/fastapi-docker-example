@@ -12,6 +12,14 @@ resource "google_project_service" "artifact_registry_api" {
   disable_on_destroy = false
 }
 
+# Enable the IAM Service Account Credentials API
+resource "google_project_service" "iam_credentials_api" {
+  project = var.project_id
+  service = "iamcredentials.googleapis.com"
+
+  disable_on_destroy = false
+}
+
 # Create an Artifact Registry repository for Docker images
 resource "google_artifact_registry_repository" "docker_registry" {
   depends_on    = [google_project_service.artifact_registry_api]
