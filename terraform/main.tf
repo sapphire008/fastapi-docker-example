@@ -76,7 +76,6 @@ resource "google_service_account" "github_deployer" {
   display_name = "GitHub Deployer"
 }
 
-
 # Grant accesses to the service account
 resource "google_project_iam_member" "github_deployer_roles" {
   for_each = toset([
