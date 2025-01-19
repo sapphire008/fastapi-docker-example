@@ -16,7 +16,6 @@ resource "google_project_service" "artifact_registry_api" {
 resource "google_artifact_registry_repository" "docker_registry" {
   depends_on    = [google_project_service.artifact_registry_api]
   repository_id = "fastapi-example-docker"
-  name          = "fastapi-example-docker"
   project       = "rinoa-dev"
   location      = "us-central1"
   format        = "DOCKER"
