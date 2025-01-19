@@ -1,6 +1,6 @@
 variable "project_id" {
   description = "The GCP project ID"
-  default = "rinoa-dev"
+  default = "my-dev-448321"
 }
 
 variable "region" {

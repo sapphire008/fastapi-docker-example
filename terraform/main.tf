@@ -1,7 +1,7 @@
 # Specify the Google Cloud provider
 provider "google" {
-  project     = var.project_id
-  region      = var.region
+  project = var.project_id
+  region  = var.region
 }
 
 # Enable the Artifact Registry API (if not already enabled)
@@ -24,7 +24,7 @@ resource "google_artifact_registry_repository" "docker_registry" {
 
 # Output the repository URL
 output "repository_url" {
-  value = google_artifact_registry_repository.docker_registry.repository_id
+  value       = google_artifact_registry_repository.docker_registry.repository_id
   description = "The Artifact Registry repository URL"
 }
 
@@ -38,10 +38,10 @@ resource "google_project_service" "cloud_run_api" {
 
 # Create the Workload Identity Pool
 resource "google_iam_workload_identity_pool" "github_actions_pool" {
-  provider      = google
+  provider                  = google
   workload_identity_pool_id = "github-actions-pool"
-  display_name  = "GitHub Actions Pool"
-  description   = "Workload Identity Pool for GitHub Actions"
+  display_name              = "GitHub Actions Pool"
+  description               = "Workload Identity Pool for GitHub Actions"
 }
 
 # Create the Workload Identity Provider
@@ -72,15 +72,18 @@ resource "google_service_account" "github_deployer" {
 resource "google_service_account_iam_member" "github_actions_impersonation" {
   service_account_id = google_service_account.github_deployer.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_actions_pool.name}/attribute.repository/${var.github_org}/${var.github_repo}"
+  member = join("", ["principalSet://iam.googleapis.com/",
+    "${google_iam_workload_identity_pool.github_actions_pool.name}/",
+    "attribute.repository/${var.github_org}/${var.github_repo}"
+  ])
 }
 
 output "workload_identity_provider" {
-  value = google_iam_workload_identity_pool_provider.github_actions_provider.name
+  value       = google_iam_workload_identity_pool_provider.github_actions_provider.name
   description = "Workload Identity Provider for GitHub Actions"
 }
 
 output "service_account_email" {
-  value = google_service_account.github_deployer.email
+  value       = google_service_account.github_deployer.email
   description = "Email of the GitHub Deployer Service Account"
 }
