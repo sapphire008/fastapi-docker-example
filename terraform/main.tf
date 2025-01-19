@@ -81,7 +81,8 @@ resource "google_service_account" "github_deployer" {
 resource "google_project_iam_member" "github_deployer_roles" {
   for_each = toset([
     "roles/run.developer",
-    "roles/artifactregistry.writer"
+    "roles/artifactregistry.writer",
+    "roles/iam.serviceAccountUser"
   ])
 
   project = var.project_id
