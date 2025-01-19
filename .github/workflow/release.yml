@@ -7,6 +7,7 @@ name: Build the FastAPI App on Release
     branches:
       - main
 permissions:
+  id-token: 'write'
   checks: write
   contents: read
   pull-requests: write
@@ -20,12 +21,18 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
+      - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: github-deployer@my-dev-448321.iam.gserviceaccount.com
+        service_account: "projects/633211003285/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider"
       
       - name: Setup some generated envrionment variables
         id: env_vars
         run: |
-          echo "REVISION_NAME=${{ vars.PROJECT_NAME }}-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
-          echo "IMAGE_URI=us-central1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID  }}/${{ vars.GCP_ARTIFACTORY_NAME }}/${{ vars.PROJECT_NAME }}:latest" >> $GITHUB_ENV
+          echo "IMAGE_URI=us-central1-docker.pkg.dev/my-dev-448321/fastapi-example-docker/fastapi-example-app:latest" >> $GITHUB_ENV
     
       - name: Configure Docker for Google Artifact Registry
         run: |
@@ -39,21 +46,8 @@ jobs:
         run: |
           docker push ${{ env.IMAGE_URI }}
       
-      - id: cloudrun-config-file
-        name: Set up Cloud Run Config YAML file
-        uses: cuchi/jinja2-action@v1.2.2
+      - id: 'deploy'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
         with:
-            template: deployment/cloud_run_service_template.yaml
-            output_file: cloudrun-deploy.yaml
-            variables: |
-              PROJECT_NAME=${{ vars.PROJECT_NAME }}
-              IMAGE_URI=${{ env.IMAGE_URI }}
-              MAX_CONCURRENT_REQUESTS=80
-              CPU_LIMIT=2
-              MEMORY_LIMIT=4Gi
-              REQUEST_TIMEOUT_SEC=300
-              REVISION_NAME=${{ env.REVISION_NAME }}
-      
-      - name: Deploy to Cloud Run using YAML
-        run: |
-          gcloud run services replace cloudrun-deploy.yaml
+          service: 'fastapi-hello'
+          image: ${{ env.IMAGE_URI }}
